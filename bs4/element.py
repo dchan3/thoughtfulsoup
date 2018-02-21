@@ -10,26 +10,12 @@ import warnings
 from bs4.dammit import EntitySubstitution
 
 OPERATORS = {
-    # string representation of `attribute` is equal to `value`
-    "=": lambda el, attribute, value: el._attr_value_as_string(attribute) == value,
-
-    # space-separated list representation of `attribute`
-    # contains `value`
-    "~": lambda el, attribute, value: value in el.get(attribute, []) if isinstance(el.get(attribute, []), list) else value in el.get(attribute, []).split(),
-
-    # string representation of `attribute` starts with `value`
-    "^": lambda el, attribute, value: el._attr_value_as_string(attribute, '').startswith(value),
-
-    # string representation of `attribute` ends with `value`
-    "$": lambda el, attribute, value: el._attr_value_as_string(attribute, '').endswith(value),
-
-    # string representation of `attribute` contains `value`
-    "*": lambda el, attribute, value: value in el._attr_value_as_string(attribute, ''),
-
-    # string representation of `attribute` is either exactly
-    # `value` or starts with `value` and then a dash.
-    "|": lambda el, attribute, value: el._attr_value_as_string(attribute, '') == value or el._attr_value_as_string(attribute, '').startswith(value + '-'),
-
+    "=": lambda el, attribute, value: el._attr_value_as_string(attribute) == value, # string representation of `attribute` is equal to `value`
+    "~": lambda el, attribute, value: value in el.get(attribute, []) if isinstance(el.get(attribute, []), list) else value in el.get(attribute, []).split(), # space-separated list representation of `attribute` contains `value`
+    "^": lambda el, attribute, value: el._attr_value_as_string(attribute, '').startswith(value), # string representation of `attribute` starts with `value`
+    "$": lambda el, attribute, value: el._attr_value_as_string(attribute, '').endswith(value), # string representation of `attribute` ends with `value`
+    "*": lambda el, attribute, value: value in el._attr_value_as_string(attribute, ''), # string representation of `attribute` contains `value`
+    "|": lambda el, attribute, value: el._attr_value_as_string(attribute, '') == value or el._attr_value_as_string(attribute, '').startswith(value + '-'),     # string representation of `attribute` is either exactly `value` or starts with `value` and then a dash.
     "def": lambda el, attribute, value: el.has_attr(attribute)
 }
 
@@ -1432,36 +1418,21 @@ class Tag(PageElement):
                         pseudo_value = 1
 
                     class Counter(object):
-                        def __init__(self, destination):
-                            self.count = 0
-                            self.destination = destination
-
-                        def nth_child_of_type(self, tag):
-                            self.count += 1
-                            if self.count == self.destination:
-                                return True
-                            else:
-                                return False
-
-                    class FromLast(object):
-                        def __init__(self, destination):
-                            self.count = 0
+                        def __init__(self, destination, from_last):
+                            self.from_last = from_last
                             self.destination = destination if destination is not None else 1
 
-                        def nth_last_child_of_type(self, tag, tags):
-                            if tag == tags[-1 * self.destination]:
-                                return True
-                            else:
-                                return False
+                        def nth_child_of_type(self, tag, tags):
+                            return len(tags) >= self.destination and tag == tags[-1 * self.destination if self.from_last else self.destination - 1]
 
-                    if pseudo_type == 'nth-of-type':
-                        checker = Counter(pseudo_value).nth_child_of_type
-                    elif pseudo_type == 'first-of-type':
-                        checker = Counter(1).nth_child_of_type
-                    elif pseudo_type == 'nth-last-of-type':
-                        checker = FromLast(pseudo_value).nth_last_child_of_type
-                    else:
-                        checker = FromLast(1).nth_last_child_of_type
+                    pseudo_type_checker = {
+                        'nth-of-type': Counter(pseudo_value, False).nth_child_of_type,
+                        'first-of-type': Counter(1, False).nth_child_of_type,
+                        'nth-last-of-type': Counter(pseudo_value, True).nth_child_of_type,
+                        'last-of-type': Counter(1, True).nth_child_of_type
+                    }
+
+                    checker = pseudo_type_checker[pseudo_type]
                 else:
                     raise NotImplementedError(
                         'Only the following pseudo-classes are implemented: nth-of-type.')
@@ -1564,7 +1535,7 @@ class Tag(PageElement):
 
                     if checker is not None:
                         try:
-                            if checker.__name__ == "nth_last_child_of_type":
+                            if checker.__name__ == "nth_child_of_type":
                                 result = checker(candidate, matches)
                             else:
                                 result = checker(candidate)
