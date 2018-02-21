@@ -8,7 +8,31 @@ import shlex
 import sys
 import warnings
 from bs4.dammit import EntitySubstitution
-from inspect import getargspec
+
+OPERATORS = {
+    # string representation of `attribute` is equal to `value`
+    "=": lambda el, attribute, value: el._attr_value_as_string(attribute) == value,
+
+    # space-separated list representation of `attribute`
+    # contains `value`
+    "~": lambda el, attribute, value: value in el.get(attribute, []) if isinstance(el.get(attribute, []), list) else value in el.get(attribute, []).split(),
+
+    # string representation of `attribute` starts with `value`
+    "^": lambda el, attribute, value: el._attr_value_as_string(attribute, '').startswith(value),
+
+    # string representation of `attribute` ends with `value`
+    "$": lambda el, attribute, value: el._attr_value_as_string(attribute, '').endswith(value),
+
+    # string representation of `attribute` contains `value`
+    "*": lambda el, attribute, value: value in el._attr_value_as_string(attribute, ''),
+
+    # string representation of `attribute` is either exactly
+    # `value` or starts with `value` and then a dash.
+    "|": lambda el, attribute, value: el._attr_value_as_string(attribute, '') == value or el._attr_value_as_string(attribute, '').startswith(value + '-'),
+
+    "def": lambda el, attribute, value: el.has_attr(attribute)
+}
+
 
 DEFAULT_OUTPUT_ENCODING = "utf-8"
 PY3K = (sys.version_info[0] > 2)
@@ -634,45 +658,9 @@ class PageElement(object):
             return _match
 
     def _attribute_checker(self, operator, attribute, value=''):
-        """Create a function that performs a CSS selector operation.
-
-        Takes an operator, attribute and optional value. Returns a
-        function that will return True for elements that match that
-        combination.
-        """
-        if operator == '=':
-            # string representation of `attribute` is equal to `value`
-            return lambda el: el._attr_value_as_string(attribute) == value
-        elif operator == '~':
-            # space-separated list representation of `attribute`
-            # contains `value`
-            def _includes_value(element):
-                attribute_value = element.get(attribute, [])
-                if not isinstance(attribute_value, list):
-                    attribute_value = attribute_value.split()
-                return value in attribute_value
-            return _includes_value
-        elif operator == '^':
-            # string representation of `attribute` starts with `value`
-            return lambda el: el._attr_value_as_string(
-                attribute, '').startswith(value)
-        elif operator == '$':
-            # string representation of `attribute` ends with `value`
-            return lambda el: el._attr_value_as_string(
-                attribute, '').endswith(value)
-        elif operator == '*':
-            # string representation of `attribute` contains `value`
-            return lambda el: value in el._attr_value_as_string(attribute, '')
-        elif operator == '|':
-            # string representation of `attribute` is either exactly
-            # `value` or starts with `value` and then a dash.
-            def _is_or_starts_with_dash(element):
-                attribute_value = element._attr_value_as_string(attribute, '')
-                return (attribute_value == value or attribute_value.startswith(
-                        value + '-'))
-            return _is_or_starts_with_dash
-        else:
-            return lambda el: el.has_attr(attribute)
+        global OPERATORS
+        f = OPERATORS[operator if len(operator) > 0 and operator in "=~^$*|" else "def"]
+        return lambda e: f(e, attribute, value)
 
     # Old non-property versions of the generators, for backwards
     # compatibility with BS3.
