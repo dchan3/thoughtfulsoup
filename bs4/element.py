@@ -19,6 +19,11 @@ OPERATORS = {
     "def": lambda el, attribute, value: el.has_attr(attribute)
 }
 
+TOKENS = {
+    ">": lambda tag: tag.children, # Run the next token as a CSS selector against the direct children of each tag in the current context.
+    '~': lambda tag: tag.next_siblings,  # Run the next token as a CSS selector against the siblings of each tag in the current context.
+    '+': lambda tag: (yield tag.find_next_sibling(True)), # For each tag in the current context, run the next token as a CSS selector against the tag's next sibling that's a tag.
+}
 
 DEFAULT_OUTPUT_ENCODING = "utf-8"
 PY3K = (sys.version_info[0] > 2)
@@ -1440,22 +1445,8 @@ class Tag(PageElement):
             elif token == '*':
                 # Star selector -- matches everything
                 pass
-            elif token == '>':
-                # Run the next token as a CSS selector against the
-                # direct children of each tag in the current context.
-                recursive_candidate_generator = lambda tag: tag.children
-            elif token == '~':
-                # Run the next token as a CSS selector against the
-                # siblings of each tag in the current context.
-                recursive_candidate_generator = lambda tag: tag.next_siblings
-            elif token == '+':
-                # For each tag in the current context, run the next
-                # token as a CSS selector against the tag's next
-                # sibling that's a tag.
-                def next_tag_sibling(tag):
-                    yield tag.find_next_sibling(True)
-                recursive_candidate_generator = next_tag_sibling
-
+            elif token in '>~+':
+                recursive_candidate_generator = TOKENS[token]
             elif self.tag_name_re.match(token):
                 # Just a tag name.
                 tag_name = token
