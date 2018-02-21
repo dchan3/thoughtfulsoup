@@ -235,7 +235,7 @@ class TestFindAllByName(TreeTest):
         self.assertEqual('1', r3.string)
         self.assertEqual('3', r4.string)
 
-        
+
 class TestFindAllByAttribute(TreeTest):
 
     def test_find_all_by_attribute_name(self):
@@ -1289,7 +1289,7 @@ class TestCDAtaListAttributes(SoupTest):
     def test_get_attribute_list(self):
         soup = self.soup("<a id='abc def'>")
         self.assertEqual(['abc def'], soup.a.get_attribute_list('id'))
-        
+
     def test_accept_charset(self):
         soup = self.soup('<form accept-charset="ISO-8859-1 UTF-8">')
         self.assertEqual(['ISO-8859-1', 'UTF-8'], soup.form['accept-charset'])
@@ -1973,8 +1973,20 @@ class TestSoupSelector(TreeTest):
         self.assertEqual(len(els), 1)
         self.assertEqual(els[0].string, u'Some text')
 
+    def test_id_child_selector_first_of_type(self):
+        self.assertSelects('body > div:first-of-type', ["main"])
+
     def test_id_child_selector_nth_of_type(self):
         self.assertSelects('#inner > p:nth-of-type(2)', ['p1'])
+
+    def test_id_child_selector_nth_last_of_type(self):
+        self.assertSelects('#main > div:nth-last-of-type(2)', ['inner'])
+
+    def test_id_child_selector_nth_last_of_type(self):
+        self.assertSelects('#main > div:last-of-type', ['inner'])
+
+    def test_id_child_selector_last_of_type(self):
+        self.assertSelects('body > div:nth-last-of-type(2)', ['main'])
 
     def test_select_on_element(self):
         # Other tests operate on the tree; this operates on an element
@@ -2045,6 +2057,3 @@ class TestSoupSelector(TreeTest):
 
     def test_multiple_select_nested(self):
         self.assertSelects('body > div > x, y > z', ['xid', 'zidb'])
-
-
-

@@ -8,6 +8,7 @@ import shlex
 import sys
 import warnings
 from bs4.dammit import EntitySubstitution
+from inspect import getargspec
 
 DEFAULT_OUTPUT_ENCODING = "utf-8"
 PY3K = (sys.version_info[0] > 2)
@@ -1424,16 +1425,24 @@ class Tag(PageElement):
                     pseudo_type = pseudo
                     pseudo_value = None
                 else:
-                    pseudo_type, pseudo_value = pseudo_attributes.groups()
-                if pseudo_type == 'nth-of-type':
-                    try:
-                        pseudo_value = int(pseudo_value)
-                    except:
-                        raise NotImplementedError(
-                            'Only numeric values are currently supported for the nth-of-type pseudo-class.')
-                    if pseudo_value < 1:
-                        raise ValueError(
-                            'nth-of-type pseudo-class value must be at least 1.')
+                    pseudo_type, pseudo_value = pseudo_attributes.groups() or None
+                if pseudo_type in ['nth-of-type', 'nth-last-of-type', 'last-of-type', 'first-of-type']:
+                    if pseudo_type not in ['last-of-type', 'first-of-type']:
+                        try:
+                            if pseudo_value is not None:
+                                pseudo_value = int(pseudo_value)
+                        except:
+                            raise NotImplementedError(
+                                'Only numeric values are currently supported for the nth-of-type pseudo-class.')
+                        if pseudo_value < 1:
+                            raise ValueError(
+                                'nth-of-type pseudo-class value must be at least 1.')
+                    else:
+                        if pseudo_value is not None:
+                            raise ValueError(
+                                'Numeric values are not supported for the last-of-type or first-of-type pseudo-classes.')
+                        pseudo_value = 1
+
                     class Counter(object):
                         def __init__(self, destination):
                             self.count = 0
@@ -1445,7 +1454,26 @@ class Tag(PageElement):
                                 return True
                             else:
                                 return False
-                    checker = Counter(pseudo_value).nth_child_of_type
+
+                    class FromLast(object):
+                        def __init__(self, destination):
+                            self.count = 0
+                            self.destination = destination if destination is not None else 1
+
+                        def nth_last_child_of_type(self, tag, tags):
+                            if tag == tags[-1 * self.destination]:
+                                return True
+                            else:
+                                return False
+
+                    if pseudo_type == 'nth-of-type':
+                        checker = Counter(pseudo_value).nth_child_of_type
+                    elif pseudo_type == 'first-of-type':
+                        checker = Counter(1).nth_child_of_type
+                    elif pseudo_type == 'nth-last-of-type':
+                        checker = FromLast(pseudo_value).nth_last_child_of_type
+                    else:
+                        checker = FromLast(1).nth_last_child_of_type
                 else:
                     raise NotImplementedError(
                         'Only the following pseudo-classes are implemented: nth-of-type.')
@@ -1529,14 +1557,29 @@ class Tag(PageElement):
                 if self._select_debug:
                     print "    Running candidate generator on %s %s" % (
                         tag.name, repr(tag.attrs))
+
+                def match_gen(t):
+                    r = []
+                    for tg in t:
+                        if isinstance(tg, Tag) and tag_name and tg.name == tag_name:
+                            r.append(tg)
+                    return r
+
+                matches = match_gen(_use_candidate_generator(tag))
+
                 for candidate in _use_candidate_generator(tag):
+
                     if not isinstance(candidate, Tag):
                         continue
                     if tag_name and candidate.name != tag_name:
                         continue
+
                     if checker is not None:
                         try:
-                            result = checker(candidate)
+                            if checker.__name__ == "nth_last_child_of_type":
+                                result = checker(candidate, matches)
+                            else:
+                                result = checker(candidate)
                         except StopIteration:
                             # The checker has decided we should no longer
                             # run the generator.
