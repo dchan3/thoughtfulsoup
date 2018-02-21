@@ -25,6 +25,10 @@ TOKENS = {
     '+': lambda tag: (yield tag.find_next_sibling(True)), # For each tag in the current context, run the next token as a CSS selector against the tag's next sibling that's a tag.
 }
 
+_selector_combinators = '>+~'
+
+SUPPORTED = ['nth-of-type', 'nth-last-of-type', 'last-of-type', 'first-of-type']
+
 DEFAULT_OUTPUT_ENCODING = "utf-8"
 PY3K = (sys.version_info[0] > 2)
 
@@ -1312,7 +1316,6 @@ class Tag(PageElement):
 
     # CSS selector code
 
-    _selector_combinators = ['>', '+', '~']
     _select_debug = False
     quoted_colon = re.compile('"[^"]*:[^"]*"')
     def select_one(self, selector):
@@ -1343,7 +1346,7 @@ class Tag(PageElement):
         tokens = shlex.split(selector)
         current_context = [self]
 
-        if tokens[-1] in self._selector_combinators:
+        if tokens[-1] in _selector_combinators:
             raise ValueError(
                 'Final combinator "%s" is missing an argument.' % tokens[-1])
 
@@ -1354,7 +1357,7 @@ class Tag(PageElement):
             new_context = []
             new_context_ids = set([])
 
-            if tokens[index-1] in self._selector_combinators:
+            if tokens[index-1] in _selector_combinators:
                 # This token was consumed by the previous combinator. Skip it.
                 if self._select_debug:
                     print '  Token was consumed by the previous combinator.'
@@ -1405,7 +1408,7 @@ class Tag(PageElement):
                     pseudo_value = None
                 else:
                     pseudo_type, pseudo_value = pseudo_attributes.groups() or None
-                if pseudo_type in ['nth-of-type', 'nth-last-of-type', 'last-of-type', 'first-of-type']:
+                if pseudo_type in SUPPORTED:
                     if pseudo_type not in ['last-of-type', 'first-of-type']:
                         try:
                             if pseudo_value is not None:
@@ -1445,7 +1448,7 @@ class Tag(PageElement):
             elif token == '*':
                 # Star selector -- matches everything
                 pass
-            elif token in '>~+':
+            elif token in _selector_combinators:
                 recursive_candidate_generator = TOKENS[token]
             elif self.tag_name_re.match(token):
                 # Just a tag name.
