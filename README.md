@@ -7,6 +7,10 @@
 - `last-of-type`
 - `first-of-type`
 
+### Runtime Optimizations
+- Use dictionary objects rather than long equality `if-elif` statements
+  * Tests run in less time on average, although difference is negligible
+
 ## Original License
 Beautiful Soup is made available under the MIT license:
 
