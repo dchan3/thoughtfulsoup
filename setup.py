@@ -4,14 +4,12 @@ from setuptools import (
 )
 
 setup(
-    name="beautifulsoup4",
-    version = "4.6.0",
-    author="Leonard Richardson",
-    author_email='leonardr@segfault.org',
-    url="http://www.crummy.com/software/BeautifulSoup/bs4/",
-    download_url = "http://www.crummy.com/software/BeautifulSoup/bs4/download/",
-    description="Screen-scraping library",
-    long_description="""Beautiful Soup sits atop an HTML or XML parser, providing Pythonic idioms for iterating, searching, and modifying the parse tree.""",
+    name="thoughtfulsoup",
+    version = "0.0.1",
+    author="Derek Chan",
+    author_email='dchan3@hawaii.edu',
+    description="beautifulsoup4 fork",
+    long_description="""TLDR: This is pretty much a fork of BeautifulSoup4, but thoughtfully extended.""",
     license="MIT",
     packages=find_packages(exclude=['tests*']),
     extras_require = {
@@ -19,10 +17,7 @@ setup(
         'html5lib' : ['html5lib'],
     },
     use_2to3 = True,
-    classifiers=["Development Status :: 5 - Production/Stable",
-                 "Intended Audience :: Developers",
-                 "License :: OSI Approved :: MIT License",
-                 "Programming Language :: Python",
+    classifiers=["Programming Language :: Python",
                  "Programming Language :: Python :: 2.7",
                  'Programming Language :: Python :: 3',
                  "Topic :: Text Processing :: Markup :: HTML",
