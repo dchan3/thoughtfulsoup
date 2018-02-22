@@ -2,10 +2,14 @@
 *BeautifulSoup4 thoughtfully extended by dchan3*
 
 ## Extensions Implemented
-### Selectors
-- `nth-last-of-type`
-- `last-of-type`
-- `first-of-type`
+### Pseudo-selectors
+- `:nth-last-of-type`
+- `:nth-of-type`
+- `:nth-of-child`
+- `:last-of-type`
+- `:last-child`
+- `:first-of-type`
+- `:first-child`
 
 ### Runtime Optimizations
 - Use dictionary objects rather than long equality `if-elif` statements
