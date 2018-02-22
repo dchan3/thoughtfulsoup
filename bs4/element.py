@@ -12,6 +12,7 @@ from bs4.operators import OPERATORS
 from bs4.combinator_tokens import COMBINATOR_TOKENS
 from bs4.checker_map import CHECKER_MAP
 from bs4.counter import Counter, PSEUDO_TYPE_CHECKER
+from bs4.a_n_plus_b import AnPlusB
 
 SUPPORTED = ['nth-child', 'nth-of-type', 'nth-last-of-type', 'last-of-type', 'last-child', 'first-of-type', 'first-child']
 
@@ -1402,7 +1403,7 @@ class Tag(PageElement):
                     if tag_name == '':
                         raise ValueError(
                             "A pseudo-class must be prefixed with a tag name.")
-                    pseudo_attributes = re.match('([\w\d-]+)\(([\w\d]+)\)', pseudo)
+                    pseudo_attributes = re.match('([\w\d-]+)\(([\w\d+-]+)\)', pseudo)
                     found = []
                     if pseudo_attributes is None:
                         pseudo_type = pseudo
@@ -1410,14 +1411,18 @@ class Tag(PageElement):
                     else:
                         pseudo_type, pseudo_value = pseudo_attributes.groups() or None
                     if pseudo_type in SUPPORTED:
-                        if pseudo_type not in ['last-of-type', 'last-child', 'first-of-type', 'first-child',]:
+                        if pseudo_type not in ['last-of-type', 'last-child', 'first-of-type', 'first-child']:
                             try:
                                 if pseudo_value is not None:
-                                    pseudo_value = int(pseudo_value)
-                            except:
+                                    if re.match(r'(\d+n[+-]\d+)|(\d+[+-]\d+n)|(-?\d+n)', pseudo_value):
+                                        pseudo_value = AnPlusB.parse(pseudo_value)
+                                    else:
+                                        pseudo_value = int(pseudo_value)
+                            except ValueError:
                                 raise NotImplementedError(
                                     'Only numeric values are currently supported for the nth-of-type pseudo-class.')
-                            if pseudo_value < 1:
+
+                            if not isinstance(pseudo_value, AnPlusB) and pseudo_value < 1:
                                 raise ValueError(
                                     'nth-of-type pseudo-class value must be at least 1.')
                         else:

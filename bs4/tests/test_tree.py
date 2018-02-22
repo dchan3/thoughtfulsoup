@@ -1997,6 +1997,9 @@ class TestSoupSelector(TreeTest):
     def test_id_child_selector_nth_child(self):
         self.assertSelects('#inner > p:nth-child(3)', ['p1'])
 
+    def test_id_child_selector_axbth_child(self):
+        self.assertSelects('#inner > h2:nth-child(3n+1)', ['header2', 'header3'])
+
     def test_select_on_element(self):
         # Other tests operate on the tree; this operates on an element
         # within the tree.
