@@ -1,5 +1,5 @@
-# BeautifulSoup4
-*Thoughtfully extended by dchan3*
+# ThoughtfulSoup
+*BeautifulSoup4 thoughtfully extended by dchan3*
 
 ## Extensions Implemented
 ### Selectors

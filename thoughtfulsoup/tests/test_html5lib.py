@@ -3,12 +3,12 @@
 import warnings
 
 try:
-    from bs4.builder import HTML5TreeBuilder
+    from thoughtfulsoup.builder import HTML5TreeBuilder
     HTML5LIB_PRESENT = True
 except ImportError, e:
     HTML5LIB_PRESENT = False
-from bs4.element import SoupStrainer
-from bs4.testing import (
+from thoughtfulsoup.element import SoupStrainer
+from thoughtfulsoup.testing import (
     HTML5TreeBuilderSmokeTest,
     SoupTest,
     skipIf,
@@ -110,7 +110,7 @@ class HTML5LibBuilderSmokeTest(SoupTest, HTML5TreeBuilderSmokeTest):
         # (second) 'aftermath' string.
         self.assertEqual(final_aftermath, target.next_element)
         self.assertEqual(target, final_aftermath.previous_element)
-        
+
     def test_processing_instruction(self):
         """Processing instructions become comments."""
         markup = b"""<?PITarget PIContent?>"""

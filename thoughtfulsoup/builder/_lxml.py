@@ -9,14 +9,14 @@ from io import BytesIO
 from StringIO import StringIO
 import collections
 from lxml import etree
-from bs4.element import (
+from thoughtfulsoup.element import (
     Comment,
     Doctype,
     NamespacedAttribute,
     ProcessingInstruction,
     XMLProcessingInstruction,
 )
-from bs4.builder import (
+from thoughtfulsoup.builder import (
     FAST,
     HTML,
     HTMLTreeBuilder,
@@ -24,7 +24,7 @@ from bs4.builder import (
     ParserRejectedMarkup,
     TreeBuilder,
     XML)
-from bs4.dammit import EncodingDetector
+from thoughtfulsoup.dammit import EncodingDetector
 
 LXML = 'lxml'
 

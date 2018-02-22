@@ -1,1 +1,1 @@
-python2.7 -m unittest discover -s bs4 && ./convert-py3k
+python2.7 -m unittest discover -s thoughtfulsoup && ./convert-py3k

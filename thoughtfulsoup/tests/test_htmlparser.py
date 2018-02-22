@@ -3,8 +3,8 @@ trees."""
 
 from pdb import set_trace
 import pickle
-from bs4.testing import SoupTest, HTMLTreeBuilderSmokeTest
-from bs4.builder import HTMLParserTreeBuilder
+from thoughtfulsoup.testing import SoupTest, HTMLTreeBuilderSmokeTest
+from thoughtfulsoup.builder import HTMLParserTreeBuilder
 
 class HTMLParserTreeBuilderSmokeTest(SoupTest, HTMLTreeBuilderSmokeTest):
 

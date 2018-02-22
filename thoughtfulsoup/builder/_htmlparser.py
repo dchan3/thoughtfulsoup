@@ -33,16 +33,16 @@ CONSTRUCTOR_STRICT_IS_DEPRECATED = major == 3 and minor == 3
 CONSTRUCTOR_TAKES_CONVERT_CHARREFS = major == 3 and minor >= 4
 
 
-from bs4.element import (
+from thoughtfulsoup.element import (
     CData,
     Comment,
     Declaration,
     Doctype,
     ProcessingInstruction,
     )
-from bs4.dammit import EntitySubstitution, UnicodeDammit
+from thoughtfulsoup.dammit import EntitySubstitution, UnicodeDammit
 
-from bs4.builder import (
+from thoughtfulsoup.builder import (
     HTML,
     HTMLTreeBuilder,
     STRICT,
@@ -51,7 +51,7 @@ from bs4.builder import (
 
 HTMLPARSER = 'html.parser'
 
-class BeautifulSoupHTMLParser(HTMLParser):
+class ThoughtfulSoupHTMLParser(HTMLParser):
 
     def __init__(self, *args, **kwargs):
         HTMLParser.__init__(self, *args, **kwargs)
@@ -64,7 +64,7 @@ class BeautifulSoupHTMLParser(HTMLParser):
         # order. It's a list of closing tags we've already handled and
         # will ignore, assuming they ever show up.
         self.already_closed_empty_element = []
-    
+
     def handle_startendtag(self, name, attrs):
         # This is only called when the markup looks like
         # <tag/>.
@@ -75,7 +75,7 @@ class BeautifulSoupHTMLParser(HTMLParser):
         # handle_endtag ourselves.
         tag = self.handle_starttag(name, attrs, handle_empty_element=False)
         self.handle_endtag(name)
-        
+
     def handle_starttag(self, name, attrs, handle_empty_element=True):
         # XXX namespace
         attr_dict = {}
@@ -103,7 +103,7 @@ class BeautifulSoupHTMLParser(HTMLParser):
             # But we might encounter an explicit closing tag for this tag
             # later on. If so, we want to ignore it.
             self.already_closed_empty_element.append(name)
-            
+
     def handle_endtag(self, name, check_already_closed=True):
         #print "END", name
         if check_already_closed and name in self.already_closed_empty_element:
@@ -209,13 +209,11 @@ class HTMLParserTreeBuilder(HTMLTreeBuilder):
 
     def feed(self, markup):
         args, kwargs = self.parser_args
-        parser = BeautifulSoupHTMLParser(*args, **kwargs)
+        parser = ThoughtfulSoupHTMLParser(*args, **kwargs)
         parser.soup = self.soup
         try:
             parser.feed(markup)
         except HTMLParseError, e:
-            warnings.warn(RuntimeWarning(
-                "Python's built-in HTMLParser cannot parse the given document. This is not a bug in Beautiful Soup. The best solution is to install an external parser (lxml or html5lib), and use Beautiful Soup with that parser. See http://www.crummy.com/software/BeautifulSoup/bs4/doc/#installing-a-parser for help."))
             raise e
         parser.already_closed_empty_element = []
 
@@ -245,7 +243,7 @@ if major == 3 and minor == 2 and not CONSTRUCTOR_TAKES_STRICT:
    )*
   \s*                                # trailing whitespace
 """, re.VERBOSE)
-    BeautifulSoupHTMLParser.locatestarttagend = locatestarttagend
+    ThoughtfulSoupHTMLParser.locatestarttagend = locatestarttagend
 
     from html.parser import tagfind, attrfind
 
@@ -308,7 +306,7 @@ if major == 3 and minor == 2 and not CONSTRUCTOR_TAKES_STRICT:
         self.cdata_elem = elem.lower()
         self.interesting = re.compile(r'</\s*%s\s*>' % self.cdata_elem, re.I)
 
-    BeautifulSoupHTMLParser.parse_starttag = parse_starttag
-    BeautifulSoupHTMLParser.set_cdata_mode = set_cdata_mode
+    ThoughtfulSoupHTMLParser.parse_starttag = parse_starttag
+    ThoughtfulSoupHTMLParser.set_cdata_mode = set_cdata_mode
 
     CONSTRUCTOR_TAKES_STRICT = True

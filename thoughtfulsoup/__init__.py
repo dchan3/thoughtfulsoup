@@ -1,31 +1,12 @@
-"""Beautiful Soup
-Elixir and Tonic
-"The Screen-Scraper's Friend"
-http://www.crummy.com/software/BeautifulSoup/
-
-Beautiful Soup uses a pluggable XML or HTML parser to parse a
-(possibly invalid) document into a tree representation. Beautiful Soup
-provides methods and Pythonic idioms that make it easy to navigate,
-search, and modify the parse tree.
-
-Beautiful Soup works with Python 2.7 and up. It works better if lxml
-and/or html5lib is installed.
-
-For more than you ever wanted to know about Beautiful Soup, see the
-documentation:
-http://www.crummy.com/software/BeautifulSoup/bs4/doc/
-
-"""
-
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-__author__ = "Leonard Richardson (leonardr@segfault.org)"
-__version__ = "4.6.0"
+__author__ = "Derek Chan (dchan3@hawaii.edu)"
+__version__ = "0.0.1"
 __copyright__ = "Copyright (c) 2004-2017 Leonard Richardson"
 __license__ = "MIT"
 
-__all__ = ['BeautifulSoup']
+__all__ = ['ThoughtfulSoup']
 
 import os
 import re
@@ -50,9 +31,9 @@ from .element import (
 
 # The very first thing we do is give a useful error if someone is
 # running this code under Python 3 without converting it.
-'You are trying to run the Python 2 version of Beautiful Soup under Python 3. This will not work.'<>'You need to convert the code, either by installing it (`python setup.py install`) or by running 2to3 (`2to3 -w bs4`).'
+'You are trying to run the Python 2 version of Beautiful Soup under Python 3. This will not work.'<>'You need to convert the code, either by installing it (`python setup.py install`) or by running 2to3 (`2to3 -w thoughtfulsoup`).'
 
-class BeautifulSoup(Tag):
+class ThoughtfulSoup(Tag):
     """
     This class defines the basic interface called by the tree builders.
 
@@ -82,7 +63,7 @@ class BeautifulSoup(Tag):
 
     ASCII_SPACES = '\x20\x0a\x09\x0c\x0d'
 
-    NO_PARSER_SPECIFIED_WARNING = "No parser was explicitly specified, so I'm using the best available %(markup_type)s parser for this system (\"%(parser)s\"). This usually isn't a problem, but if you run this code on another system, or in a different virtual environment, it may use a different parser and behave differently.\n\nThe code that caused this warning is on line %(line_number)s of the file %(filename)s. To get rid of this warning, change code that looks like this:\n\n BeautifulSoup(YOUR_MARKUP})\n\nto this:\n\n BeautifulSoup(YOUR_MARKUP, \"%(parser)s\")\n"
+    NO_PARSER_SPECIFIED_WARNING = "No parser was explicitly specified, so I'm using the best available %(markup_type)s parser for this system (\"%(parser)s\"). This usually isn't a problem, but if you run this code on another system, or in a different virtual environment, it may use a different parser and behave differently.\n\nThe code that caused this warning is on line %(line_number)s of the file %(filename)s. To get rid of this warning, change code that looks like this:\n\n ThoughtfulSoup(YOUR_MARKUP})\n\nto this:\n\n ThoughtfulSoup(YOUR_MARKUP, \"%(parser)s\")\n"
 
     def __init__(self, markup="", features=None, builder=None,
                  parse_only=None, from_encoding=None, exclude_encodings=None,
@@ -94,42 +75,42 @@ class BeautifulSoup(Tag):
         if 'convertEntities' in kwargs:
             warnings.warn(
                 "BS4 does not respect the convertEntities argument to the "
-                "BeautifulSoup constructor. Entities are always converted "
+                "ThoughtfulSoup constructor. Entities are always converted "
                 "to Unicode characters.")
 
         if 'markupMassage' in kwargs:
             del kwargs['markupMassage']
             warnings.warn(
                 "BS4 does not respect the markupMassage argument to the "
-                "BeautifulSoup constructor. The tree builder is responsible "
+                "ThoughtfulSoup constructor. The tree builder is responsible "
                 "for any necessary markup massage.")
 
         if 'smartQuotesTo' in kwargs:
             del kwargs['smartQuotesTo']
             warnings.warn(
                 "BS4 does not respect the smartQuotesTo argument to the "
-                "BeautifulSoup constructor. Smart quotes are always converted "
+                "ThoughtfulSoup constructor. Smart quotes are always converted "
                 "to Unicode characters.")
 
         if 'selfClosingTags' in kwargs:
             del kwargs['selfClosingTags']
             warnings.warn(
                 "BS4 does not respect the selfClosingTags argument to the "
-                "BeautifulSoup constructor. The tree builder is responsible "
+                "ThoughtfulSoup constructor. The tree builder is responsible "
                 "for understanding self-closing tags.")
 
         if 'isHTML' in kwargs:
             del kwargs['isHTML']
             warnings.warn(
                 "BS4 does not respect the isHTML argument to the "
-                "BeautifulSoup constructor. Suggest you use "
+                "ThoughtfulSoup constructor. Suggest you use "
                 "features='lxml' for HTML and features='lxml-xml' for "
                 "XML.")
 
         def deprecated_argument(old_name, new_name):
             if old_name in kwargs:
                 warnings.warn(
-                    'The "%s" argument to the BeautifulSoup constructor '
+                    'The "%s" argument to the ThoughtfulSoup constructor '
                     'has been renamed to "%s."' % (old_name, new_name))
                 value = kwargs[old_name]
                 del kwargs[old_name]
@@ -256,8 +237,8 @@ class BeautifulSoup(Tag):
 
     @staticmethod
     def _check_markup_is_url(markup):
-        """ 
-        Check if markup looks like it's actually a url and raise a warning 
+        """
+        Check if markup looks like it's actually a url and raise a warning
         if so. Markup can be unicode or str (py2) / bytes (py3).
         """
         if isinstance(markup, bytes):
@@ -311,10 +292,10 @@ class BeautifulSoup(Tag):
         return subclass(s)
 
     def insert_before(self, successor):
-        raise NotImplementedError("BeautifulSoup objects don't support insert_before().")
+        raise NotImplementedError("ThoughtfulSoup objects don't support insert_before().")
 
     def insert_after(self, successor):
-        raise NotImplementedError("BeautifulSoup objects don't support insert_after().")
+        raise NotImplementedError("ThoughtfulSoup objects don't support insert_after().")
 
     def popTag(self):
         tag = self.tagStack.pop()
@@ -428,7 +409,7 @@ class BeautifulSoup(Tag):
         the given tag."""
         #print "Popping to %s" % name
         if name == self.ROOT_TAG_NAME:
-            # The BeautifulSoup object itself can never be popped.
+            # The ThoughtfulSoup object itself can never be popped.
             return
 
         most_recently_popped = None
@@ -497,22 +478,22 @@ class BeautifulSoup(Tag):
             indent_level = None
         else:
             indent_level = 0
-        return prefix + super(BeautifulSoup, self).decode(
+        return prefix + super(ThoughtfulSoup, self).decode(
             indent_level, eventual_encoding, formatter)
 
-# Alias to make it easier to type import: 'from bs4 import _soup'
-_s = BeautifulSoup
-_soup = BeautifulSoup
+# Alias to make it easier to type import: 'from thoughtfulsoup import _soup'
+_s = ThoughtfulSoup
+_soup = ThoughtfulSoup
 
-class BeautifulStoneSoup(BeautifulSoup):
+class ThoughtfulStoneSoup(ThoughtfulSoup):
     """Deprecated interface to an XML parser."""
 
     def __init__(self, *args, **kwargs):
         kwargs['features'] = 'xml'
         warnings.warn(
-            'The BeautifulStoneSoup class is deprecated. Instead of using '
-            'it, pass features="xml" into the BeautifulSoup constructor.')
-        super(BeautifulStoneSoup, self).__init__(*args, **kwargs)
+            'The ThoughtfulStoneSoup class is deprecated. Instead of using '
+            'it, pass features="xml" into the ThoughtfulSoup constructor.')
+        super(ThoughtfulStoneSoup, self).__init__(*args, **kwargs)
 
 
 class StopParsing(Exception):
@@ -525,5 +506,5 @@ class FeatureNotFound(ValueError):
 #By default, act as an HTML pretty-printer.
 if __name__ == '__main__':
     import sys
-    soup = BeautifulSoup(sys.stdin)
+    soup = ThoughtfulSoup(sys.stdin)
     print soup.prettify()

@@ -3,21 +3,21 @@
 import unittest
 import warnings
 
-from bs4 import BeautifulSoup
-from bs4.builder import (
+from thoughtfulsoup import ThoughtfulSoup
+from thoughtfulsoup.builder import (
     builder_registry as registry,
     HTMLParserTreeBuilder,
     TreeBuilderRegistry,
 )
 
 try:
-    from bs4.builder import HTML5TreeBuilder
+    from thoughtfulsoup.builder import HTML5TreeBuilder
     HTML5LIB_PRESENT = True
 except ImportError:
     HTML5LIB_PRESENT = False
 
 try:
-    from bs4.builder import (
+    from thoughtfulsoup.builder import (
         LXMLTreeBuilderForXML,
         LXMLTreeBuilder,
         )
@@ -67,20 +67,20 @@ class BuiltInRegistryTest(unittest.TestCase):
         self.assertEqual(registry.lookup('html.parser'),
                           HTMLParserTreeBuilder)
 
-    def test_beautifulsoup_constructor_does_lookup(self):
+    def test_thoughtfulsoup_constructor_does_lookup(self):
 
         with warnings.catch_warnings(record=True) as w:
             # This will create a warning about not explicitly
             # specifying a parser, but we'll ignore it.
 
             # You can pass in a string.
-            BeautifulSoup("", features="html")
+            ThoughtfulSoup("", features="html")
             # Or a list of strings.
-            BeautifulSoup("", features=["html", "fast"])
+            ThoughtfulSoup("", features=["html", "fast"])
 
         # You'll get an exception if BS can't find an appropriate
         # builder.
-        self.assertRaises(ValueError, BeautifulSoup,
+        self.assertRaises(ValueError, ThoughtfulSoup,
                           "", features="no-such-feature")
 
 class RegistryTest(unittest.TestCase):

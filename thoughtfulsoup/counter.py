@@ -1,4 +1,4 @@
-from bs4.a_n_plus_b import AnPlusB
+from thoughtfulsoup.a_n_plus_b import AnPlusB
 
 class Counter(object):
     def __init__(self, destination, from_last):

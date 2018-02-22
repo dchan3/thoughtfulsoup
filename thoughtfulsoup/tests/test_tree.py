@@ -15,12 +15,12 @@ import copy
 import pickle
 import re
 import warnings
-from bs4 import BeautifulSoup
-from bs4.builder import (
+from thoughtfulsoup import ThoughtfulSoup
+from thoughtfulsoup.builder import (
     builder_registry,
     HTMLParserTreeBuilder,
 )
-from bs4.element import (
+from thoughtfulsoup.element import (
     PY3K,
     CData,
     Comment,
@@ -30,7 +30,7 @@ from bs4.element import (
     SoupStrainer,
     Tag,
 )
-from bs4.testing import (
+from thoughtfulsoup.testing import (
     SoupTest,
     skipIf,
 )
@@ -711,7 +711,7 @@ class TestTagCreation(SoupTest):
 
     def test_tag_inherits_self_closing_rules_from_builder(self):
         if XML_BUILDER_PRESENT:
-            xml_soup = BeautifulSoup("", "lxml-xml")
+            xml_soup = ThoughtfulSoup("", "lxml-xml")
             xml_br = xml_soup.new_tag("br")
             xml_p = xml_soup.new_tag("p")
 
@@ -720,7 +720,7 @@ class TestTagCreation(SoupTest):
             self.assertEqual(b"<br/>", xml_br.encode())
             self.assertEqual(b"<p/>", xml_p.encode())
 
-        html_soup = BeautifulSoup("", "html.parser")
+        html_soup = ThoughtfulSoup("", "html.parser")
         html_br = html_soup.new_tag("br")
         html_p = html_soup.new_tag("p")
 
@@ -1163,7 +1163,7 @@ class TestElementObjects(SoupTest):
         """The length of an element is its number of children."""
         soup = self.soup("<top>1<b>2</b>3</top>")
 
-        # The BeautifulSoup object itself contains one element: the
+        # The ThoughtfulSoup object itself contains one element: the
         # <top> tag.
         self.assertEqual(len(soup.contents), 1)
         self.assertEqual(len(soup), 1)
@@ -1337,7 +1337,7 @@ class TestPersistence(SoupTest):
         # to the original.
         dumped = pickle.dumps(self.tree, 2)
         loaded = pickle.loads(dumped)
-        self.assertEqual(loaded.__class__, BeautifulSoup)
+        self.assertEqual(loaded.__class__, ThoughtfulSoup)
         self.assertEqual(loaded.decode(), self.tree.decode())
 
     def test_deepcopy_identity(self):
@@ -1346,7 +1346,7 @@ class TestPersistence(SoupTest):
         self.assertEqual(copied.decode(), self.tree.decode())
 
     def test_copy_preserves_encoding(self):
-        soup = BeautifulSoup(b'<p>&nbsp;</p>', 'html.parser')
+        soup = ThoughtfulSoup(b'<p>&nbsp;</p>', 'html.parser')
         encoding = soup.original_encoding
         copy = soup.__copy__()
         self.assertEqual(u"<p> </p>", unicode(copy))
@@ -1478,7 +1478,7 @@ class TestSubstitutions(SoupTest):
    console.log("< < hey > > ");
   </script>
 """
-        encoded = BeautifulSoup(doc, 'html.parser').encode()
+        encoded = ThoughtfulSoup(doc, 'html.parser').encode()
         self.assertTrue(b"< < hey > >" in encoded)
 
     def test_formatter_skips_style_tag_for_html_documents(self):
@@ -1487,7 +1487,7 @@ class TestSubstitutions(SoupTest):
    console.log("< < hey > > ");
   </style>
 """
-        encoded = BeautifulSoup(doc, 'html.parser').encode()
+        encoded = ThoughtfulSoup(doc, 'html.parser').encode()
         self.assertTrue(b"< < hey > >" in encoded)
 
     def test_prettify_leaves_preformatted_text_alone(self):
@@ -1499,7 +1499,7 @@ class TestSubstitutions(SoupTest):
             soup.div.prettify())
 
     def test_prettify_accepts_formatter(self):
-        soup = BeautifulSoup("<html><body>foo</body></html>", 'html.parser')
+        soup = ThoughtfulSoup("<html><body>foo</body></html>", 'html.parser')
         pretty = soup.prettify(formatter = lambda x: x.upper())
         self.assertTrue("FOO" in pretty)
 
@@ -1698,7 +1698,7 @@ class TestSoupSelector(TreeTest):
 """
 
     def setUp(self):
-        self.soup = BeautifulSoup(self.HTML, 'html.parser')
+        self.soup = ThoughtfulSoup(self.HTML, 'html.parser')
 
     def assertSelects(self, selector, expected_ids, **kwargs):
         el_ids = [el['id'] for el in self.soup.select(selector, **kwargs)]
@@ -1937,7 +1937,7 @@ class TestSoupSelector(TreeTest):
         html = """<div style="display: wrong">nope</div>
         <div style="display: right">yes</div>
         """
-        soup = BeautifulSoup(html, 'html.parser')
+        soup = ThoughtfulSoup(html, 'html.parser')
         [chosen] = soup.select('div[style="display: right"]')
         self.assertEqual("yes", chosen.string)
 

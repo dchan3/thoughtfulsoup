@@ -7,30 +7,30 @@ import unittest
 import sys
 import tempfile
 
-from bs4 import (
-    BeautifulSoup,
-    BeautifulStoneSoup,
+from thoughtfulsoup import (
+    ThoughtfulSoup,
+    ThoughtfulStoneSoup,
 )
-from bs4.element import (
+from thoughtfulsoup.element import (
     CharsetMetaAttributeValue,
     ContentMetaAttributeValue,
     SoupStrainer,
     NamespacedAttribute,
     )
-import bs4.dammit
-from bs4.dammit import (
+import thoughtfulsoup.dammit
+from thoughtfulsoup.dammit import (
     EntitySubstitution,
     UnicodeDammit,
     EncodingDetector,
 )
-from bs4.testing import (
+from thoughtfulsoup.testing import (
     SoupTest,
     skipIf,
 )
 import warnings
 
 try:
-    from bs4.builder import LXMLTreeBuilder, LXMLTreeBuilderForXML
+    from thoughtfulsoup.builder import LXMLTreeBuilder, LXMLTreeBuilderForXML
     LXML_PRESENT = True
 except ImportError, e:
     LXML_PRESENT = False
@@ -58,7 +58,7 @@ class TestConstructor(SoupTest):
 class TestWarnings(SoupTest):
 
     def _no_parser_specified(self, s, is_there=True):
-        v = s.startswith(BeautifulSoup.NO_PARSER_SPECIFIED_WARNING[:80])
+        v = s.startswith(ThoughtfulSoup.NO_PARSER_SPECIFIED_WARNING[:80])
         self.assertTrue(v)
 
     def test_warning_if_no_parser_specified(self):
@@ -122,7 +122,7 @@ class TestWarnings(SoupTest):
             soup = self.soup(b"http://www.crummybytes.com/")
         # Be aware this isn't the only warning that can be raised during
         # execution..
-        self.assertTrue(any("looks like a URL" in str(w.message) 
+        self.assertTrue(any("looks like a URL" in str(w.message)
             for w in warning_list))
 
     def test_url_warning_with_unicode_url(self):
@@ -130,19 +130,19 @@ class TestWarnings(SoupTest):
             # note - this url must differ from the bytes one otherwise
             # python's warnings system swallows the second warning
             soup = self.soup(u"http://www.crummyunicode.com/")
-        self.assertTrue(any("looks like a URL" in str(w.message) 
+        self.assertTrue(any("looks like a URL" in str(w.message)
             for w in warning_list))
 
     def test_url_warning_with_bytes_and_space(self):
         with warnings.catch_warnings(record=True) as warning_list:
             soup = self.soup(b"http://www.crummybytes.com/ is great")
-        self.assertFalse(any("looks like a URL" in str(w.message) 
+        self.assertFalse(any("looks like a URL" in str(w.message)
             for w in warning_list))
 
     def test_url_warning_with_unicode_and_space(self):
         with warnings.catch_warnings(record=True) as warning_list:
             soup = self.soup(u"http://www.crummyuncode.com/ is great")
-        self.assertFalse(any("looks like a URL" in str(w.message) 
+        self.assertFalse(any("looks like a URL" in str(w.message)
             for w in warning_list))
 
 
@@ -240,13 +240,13 @@ class TestEncodingConversion(SoupTest):
     def test_ascii_in_unicode_out(self):
         # ASCII input is converted to Unicode. The original_encoding
         # attribute is set to 'utf-8', a superset of ASCII.
-        chardet = bs4.dammit.chardet_dammit
+        chardet = thoughtfulsoup.dammit.chardet_dammit
         logging.disable(logging.WARNING)
         try:
             def noop(str):
                 return None
             # Disable chardet, which will realize that the ASCII is ASCII.
-            bs4.dammit.chardet_dammit = noop
+            thoughtfulsoup.dammit.chardet_dammit = noop
             ascii = b"<foo>a</foo>"
             soup_from_ascii = self.soup(ascii)
             unicode_output = soup_from_ascii.decode()
@@ -255,7 +255,7 @@ class TestEncodingConversion(SoupTest):
             self.assertEqual(soup_from_ascii.original_encoding.lower(), "utf-8")
         finally:
             logging.disable(logging.NOTSET)
-            bs4.dammit.chardet_dammit = chardet
+            thoughtfulsoup.dammit.chardet_dammit = chardet
 
     def test_unicode_in_unicode_out(self):
         # Unicode input is left alone. The original_encoding attribute
@@ -396,21 +396,21 @@ class TestUnicodeDammit(unittest.TestCase):
         doc = b"""\357\273\277<?xml version="1.0" encoding="UTF-8"?>
 <html><b>\330\250\330\252\330\261</b>
 <i>\310\322\321\220\312\321\355\344</i></html>"""
-        chardet = bs4.dammit.chardet_dammit
+        chardet = thoughtfulsoup.dammit.chardet_dammit
         logging.disable(logging.WARNING)
         try:
             def noop(str):
                 return None
-            bs4.dammit.chardet_dammit = noop
+            thoughtfulsoup.dammit.chardet_dammit = noop
             dammit = UnicodeDammit(doc)
             self.assertEqual(True, dammit.contains_replacement_characters)
             self.assertTrue(u"\ufffd" in dammit.unicode_markup)
 
-            soup = BeautifulSoup(doc, "html.parser")
+            soup = ThoughtfulSoup(doc, "html.parser")
             self.assertTrue(soup.contains_replacement_characters)
         finally:
             logging.disable(logging.NOTSET)
-            bs4.dammit.chardet_dammit = chardet
+            thoughtfulsoup.dammit.chardet_dammit = chardet
 
     def test_byte_order_mark_removed(self):
         # A document written in UTF-16LE will have its byte order marker stripped.

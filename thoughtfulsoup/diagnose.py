@@ -7,9 +7,9 @@ __license__ = "MIT"
 import cProfile
 from StringIO import StringIO
 from HTMLParser import HTMLParser
-import bs4
-from bs4 import BeautifulSoup, __version__
-from bs4.builder import builder_registry
+import thoughtfulsoup
+from thoughtfulsoup import ThoughtfulSoup, __version__
+from thoughtfulsoup.builder import builder_registry
 
 import os
 import pstats
@@ -70,7 +70,7 @@ def diagnose(data):
         print "Trying to parse your markup with %s" % parser
         success = False
         try:
-            soup = BeautifulSoup(data, parser)
+            soup = ThoughtfulSoup(data, parser)
             success = True
         except Exception, e:
             print "%s could not parse the markup." % parser
@@ -150,7 +150,7 @@ def rword(length=5):
 def rsentence(length=4):
     "Generate a random sentence-like string."
     return " ".join(rword(random.randint(4,9)) for i in range(length))
-        
+
 def rdoc(num_elements=1000):
     """Randomly generate an invalid HTML document."""
     tag_names = ['p', 'div', 'span', 'i', 'b', 'script', 'table']
@@ -174,12 +174,12 @@ def benchmark_parsers(num_elements=100000):
     print "Comparative parser benchmark on Beautiful Soup %s" % __version__
     data = rdoc(num_elements)
     print "Generated a large invalid HTML document (%d bytes)." % len(data)
-    
+
     for parser in ["lxml", ["lxml", "html"], "html5lib", "html.parser"]:
         success = False
         try:
             a = time.time()
-            soup = BeautifulSoup(data, parser)
+            soup = ThoughtfulSoup(data, parser)
             b = time.time()
             success = True
         except Exception, e:
@@ -207,13 +207,13 @@ def profile(num_elements=100000, parser="lxml"):
     filename = filehandle.name
 
     data = rdoc(num_elements)
-    vars = dict(bs4=bs4, data=data, parser=parser)
-    cProfile.runctx('bs4.BeautifulSoup(data, parser)' , vars, vars, filename)
+    vars = dict(thoughtfulsoup=thoughtfulsoup, data=data, parser=parser)
+    cProfile.runctx('thoughtfulsoup.ThoughtfulSoup(data, parser)' , vars, vars, filename)
 
     stats = pstats.Stats(filename)
     # stats.strip_dirs()
     stats.sort_stats("cumulative")
-    stats.print_stats('_html5lib|bs4', 50)
+    stats.print_stats('_html5lib|thoughtfulsoup', 50)
 
 if __name__ == '__main__':
     diagnose(sys.stdin.read())

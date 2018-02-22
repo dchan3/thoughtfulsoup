@@ -1,0 +1,18 @@
+Metadata-Version: 1.1
+Name: thoughtfulsoup
+Version: 0.0.1
+Summary: beautifulsoup4 fork
+Home-page: UNKNOWN
+Author: Derek Chan
+Author-email: dchan3@hawaii.edu
+License: MIT
+Description-Content-Type: UNKNOWN
+Description: TLDR: This is pretty much a fork of BeautifulSoup4, but thoughtfully extended.
+Platform: UNKNOWN
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Topic :: Text Processing :: Markup :: HTML
+Classifier: Topic :: Text Processing :: Markup :: XML
+Classifier: Topic :: Text Processing :: Markup :: SGML
+Classifier: Topic :: Software Development :: Libraries :: Python Modules

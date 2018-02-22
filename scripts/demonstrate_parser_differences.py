@@ -16,17 +16,17 @@ your document the way it does.
 
 import os
 import sys
-from bs4 import BeautifulSoup
+from thoughtfulsoup import ThoughtfulSoup
 parsers = ['html.parser']
 
 try:
-    from bs4.builder import _lxml
+    from thoughtfulsoup.builder import _lxml
     parsers.append('lxml')
 except ImportError, e:
     pass
 
 try:
-    from bs4.builder import _html5lib
+    from thoughtfulsoup.builder import _html5lib
     parsers.append('html5lib')
 except ImportError, e:
     pass
@@ -41,7 +41,7 @@ class Demonstration(object):
         previous_output = None
         for parser in parser_names:
             try:
-                soup = BeautifulSoup(self.markup, parser)
+                soup = ThoughtfulSoup(self.markup, parser)
                 if markup.startswith("<div>"):
                     # Extract the interesting part
                     output = soup.div

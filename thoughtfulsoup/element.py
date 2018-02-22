@@ -7,12 +7,12 @@ import re
 import shlex
 import sys
 import warnings
-from bs4.dammit import EntitySubstitution
-from bs4.operators import OPERATORS
-from bs4.combinator_tokens import COMBINATOR_TOKENS
-from bs4.checker_map import CHECKER_MAP
-from bs4.counter import Counter, PSEUDO_TYPE_CHECKER
-from bs4.a_n_plus_b import AnPlusB
+from thoughtfulsoup.dammit import EntitySubstitution
+from thoughtfulsoup.operators import OPERATORS
+from thoughtfulsoup.combinator_tokens import COMBINATOR_TOKENS
+from thoughtfulsoup.checker_map import CHECKER_MAP
+from thoughtfulsoup.counter import Counter, PSEUDO_TYPE_CHECKER
+from thoughtfulsoup.a_n_plus_b import AnPlusB
 
 SUPPORTED = ['nth-child', 'nth-of-type', 'nth-last-of-type', 'last-of-type', 'last-child', 'first-of-type', 'first-child']
 

@@ -9,8 +9,8 @@ import copy
 import functools
 import unittest
 from unittest import TestCase
-from bs4 import BeautifulSoup
-from bs4.element import (
+from thoughtfulsoup import ThoughtfulSoup
+from thoughtfulsoup.element import (
     CharsetMetaAttributeValue,
     Comment,
     ContentMetaAttributeValue,
@@ -18,7 +18,7 @@ from bs4.element import (
     SoupStrainer,
 )
 
-from bs4.builder import HTMLParserTreeBuilder
+from thoughtfulsoup.builder import HTMLParserTreeBuilder
 default_builder = HTMLParserTreeBuilder
 
 
@@ -31,7 +31,7 @@ class SoupTest(unittest.TestCase):
     def soup(self, markup, **kwargs):
         """Build a Beautiful Soup object from markup."""
         builder = kwargs.pop('builder', self.default_builder)
-        return BeautifulSoup(markup, builder=builder, **kwargs)
+        return ThoughtfulSoup(markup, builder=builder, **kwargs)
 
     def document_for(self, markup):
         """Turn an HTML fragment into a document.
@@ -42,7 +42,7 @@ class SoupTest(unittest.TestCase):
 
     def assertSoupEquals(self, to_parse, compare_parsed_to=None):
         builder = self.default_builder
-        obj = BeautifulSoup(to_parse, builder=builder)
+        obj = ThoughtfulSoup(to_parse, builder=builder)
         if compare_parsed_to is None:
             compare_parsed_to = to_parse
 
@@ -80,14 +80,14 @@ class HTMLTreeBuilderSmokeTest(object):
             soup = self.soup("")
             new_tag = soup.new_tag(name)
             self.assertEqual(True, new_tag.is_empty_element)
-    
+
     def test_pickle_and_unpickle_identity(self):
         # Pickling a tree, then unpickling it, yields a tree identical
         # to the original.
         tree = self.soup("<a><b>foo</a>")
         dumped = pickle.dumps(tree, 2)
         loaded = pickle.loads(dumped)
-        self.assertEqual(loaded.__class__, BeautifulSoup)
+        self.assertEqual(loaded.__class__, ThoughtfulSoup)
         self.assertEqual(loaded.decode(), tree.decode())
 
     def assertDoctypeHandled(self, doctype_fragment):
@@ -167,7 +167,7 @@ class HTMLTreeBuilderSmokeTest(object):
         """Make sure you can copy the tree builder.
 
         This is important because the builder is part of a
-        BeautifulSoup object, and we want to be able to copy that.
+        ThoughtfulSoup object, and we want to be able to copy that.
         """
         copy.deepcopy(self.default_builder)
 
@@ -348,7 +348,7 @@ Hello, world!
         """
         self.assertSoupEquals('<br/><br/><br/>', "<br/><br/><br/>")
         self.assertSoupEquals('<br /><br /><br />', "<br/><br/><br/>")
-        
+
     def test_head_tag_between_head_and_body(self):
         "Prevent recurrence of a bug in the html5lib treebuilder."
         content = """<html><head></head>
@@ -594,7 +594,7 @@ class XMLTreeBuilderSmokeTest(object):
         tree = self.soup("<a><b>foo</a>")
         dumped = pickle.dumps(tree, 2)
         loaded = pickle.loads(dumped)
-        self.assertEqual(loaded.__class__, BeautifulSoup)
+        self.assertEqual(loaded.__class__, ThoughtfulSoup)
         self.assertEqual(loaded.decode(), tree.decode())
 
     def test_docstring_generated(self):
@@ -629,7 +629,7 @@ class XMLTreeBuilderSmokeTest(object):
   <script type="text/javascript">
   </script>
 """
-        soup = BeautifulSoup(doc, "lxml-xml")
+        soup = ThoughtfulSoup(doc, "lxml-xml")
         # lxml would have stripped this while parsing, but we can add
         # it later.
         soup.script.string = 'console.log("< < hey > > ");'
@@ -706,14 +706,14 @@ class XMLTreeBuilderSmokeTest(object):
         # But two of them are ns1:tag and one of them is ns2:tag.
         self.assertEqual(2, len(soup.find_all('ns1:tag')))
         self.assertEqual(1, len(soup.find_all('ns2:tag')))
-        
+
         self.assertEqual(1, len(soup.find_all('ns2:tag', key='value')))
         self.assertEqual(3, len(soup.find_all(['ns1:tag', 'ns2:tag'])))
-        
+
     def test_copy_tag_preserves_namespace(self):
         xml = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <w:document xmlns:w="http://example.com/ns0"/>"""
-    
+
         soup = self.soup(xml)
         tag = soup.document
         duplicate = copy.copy(tag)

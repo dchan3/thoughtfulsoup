@@ -7,13 +7,13 @@ __all__ = [
 
 import warnings
 import re
-from bs4.builder import (
+from thoughtfulsoup.builder import (
     PERMISSIVE,
     HTML,
     HTML_5,
     HTMLTreeBuilder,
     )
-from bs4.element import (
+from thoughtfulsoup.element import (
     NamespacedAttribute,
     whitespace_re,
 )
@@ -22,7 +22,7 @@ from html5lib.constants import (
     namespaces,
     prefixes,
     )
-from bs4.element import (
+from thoughtfulsoup.element import (
     Comment,
     Doctype,
     NavigableString,
@@ -101,8 +101,8 @@ class TreeBuilderForHtml5lib(treebuilder_base.TreeBuilder):
         if soup:
             self.soup = soup
         else:
-            from bs4 import BeautifulSoup
-            self.soup = BeautifulSoup("", "html.parser")
+            from thoughtfulsoup import ThoughtfulSoup
+            self.soup = ThoughtfulSoup("", "html.parser")
         super(TreeBuilderForHtml5lib, self).__init__(namespaceHTMLElements)
 
     def documentClass(self):
@@ -125,8 +125,8 @@ class TreeBuilderForHtml5lib(treebuilder_base.TreeBuilder):
         return TextNode(Comment(data), self.soup)
 
     def fragmentClass(self):
-        from bs4 import BeautifulSoup
-        self.soup = BeautifulSoup("", "html.parser")
+        from thoughtfulsoup import ThoughtfulSoup
+        self.soup = ThoughtfulSoup("", "html.parser")
         self.soup.name = "[document_fragment]"
         return Element(self.soup, self.soup, None)
 
@@ -141,12 +141,12 @@ class TreeBuilderForHtml5lib(treebuilder_base.TreeBuilder):
         return treebuilder_base.TreeBuilder.getFragment(self).element
 
     def testSerializer(self, element):
-        from bs4 import BeautifulSoup
+        from thoughtfulsoup import ThoughtfulSoup
         rv = []
         doctype_re = re.compile(r'^(.*?)(?: PUBLIC "(.*?)"(?: "(.*?)")?| SYSTEM "(.*?)")?$')
 
         def serializeElement(element, indent=0):
-            if isinstance(element, BeautifulSoup):
+            if isinstance(element, ThoughtfulSoup):
                 pass
             if isinstance(element, Doctype):
                 m = doctype_re.match(element)

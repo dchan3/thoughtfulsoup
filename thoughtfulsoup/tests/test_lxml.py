@@ -12,16 +12,16 @@ except ImportError, e:
     LXML_VERSION = (0,)
 
 if LXML_PRESENT:
-    from bs4.builder import LXMLTreeBuilder, LXMLTreeBuilderForXML
+    from thoughtfulsoup.builder import LXMLTreeBuilder, LXMLTreeBuilderForXML
 
-from bs4 import (
-    BeautifulSoup,
-    BeautifulStoneSoup,
+from thoughtfulsoup import (
+    ThoughtfulSoup,
+    ThoughtfulStoneSoup,
     )
-from bs4.element import Comment, Doctype, SoupStrainer
-from bs4.testing import skipIf
-from bs4.tests import test_htmlparser
-from bs4.testing import (
+from thoughtfulsoup.element import Comment, Doctype, SoupStrainer
+from thoughtfulsoup.testing import skipIf
+from thoughtfulsoup.tests import test_htmlparser
+from thoughtfulsoup.testing import (
     HTMLTreeBuilderSmokeTest,
     XMLTreeBuilderSmokeTest,
     SoupTest,
@@ -61,9 +61,9 @@ class LXMLTreeBuilderSmokeTest(SoupTest, HTMLTreeBuilderSmokeTest):
         # Make sure that the deprecated BSS class uses an xml builder
         # if one is installed.
         with warnings.catch_warnings(record=True) as w:
-            soup = BeautifulStoneSoup("<b />")
+            soup = ThoughtfulStoneSoup("<b />")
         self.assertEqual(u"<b/>", unicode(soup.b))
-        self.assertTrue("BeautifulStoneSoup class is deprecated" in str(w[0].message))
+        self.assertTrue("ThoughtfulStoneSoup class is deprecated" in str(w[0].message))
 
 @skipIf(
     not LXML_PRESENT,

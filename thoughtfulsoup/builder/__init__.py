@@ -4,7 +4,7 @@
 from collections import defaultdict
 import itertools
 import sys
-from bs4.element import (
+from thoughtfulsoup.element import (
     CharsetMetaAttributeValue,
     ContentMetaAttributeValue,
     HTMLAwareEntitySubstitution,
@@ -77,7 +77,7 @@ class TreeBuilderRegistry(object):
                 return candidate
         return None
 
-# The BeautifulSoup class will take feature lists from developers and use them
+# The ThoughtfulSoup class will take feature lists from developers and use them
 # to look up builders in this registry.
 builder_registry = TreeBuilderRegistry()
 
@@ -300,7 +300,7 @@ class HTMLTreeBuilder(TreeBuilder):
 def register_treebuilders_from(module):
     """Copy TreeBuilders from the given module into this module."""
     # I'm fairly sure this is not the best way to do this.
-    this_module = sys.modules['bs4.builder']
+    this_module = sys.modules['thoughtfulsoup.builder']
     for name in module.__all__:
         obj = getattr(module, name)
 
