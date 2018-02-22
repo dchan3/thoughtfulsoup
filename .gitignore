@@ -3,3 +3,4 @@ py3k/
 *.pyc
 *.bak
 build/
+dist/
