@@ -1980,13 +1980,22 @@ class TestSoupSelector(TreeTest):
         self.assertSelects('#inner > p:nth-of-type(2)', ['p1'])
 
     def test_id_child_selector_nth_last_of_type(self):
-        self.assertSelects('#main > div:nth-last-of-type(2)', ['inner'])
-
-    def test_id_child_selector_nth_last_of_type(self):
-        self.assertSelects('#main > div:last-of-type', ['inner'])
+        self.assertSelects('#inner > h2:nth-last-of-type(2)', ['header2'])
 
     def test_id_child_selector_last_of_type(self):
+        self.assertSelects('#inner > h2:last-of-type', ['header3'])
+
+    def test_element_child_selector_nth_last_of_type(self):
         self.assertSelects('body > div:nth-last-of-type(2)', ['main'])
+
+    def test_id_child_selector_first_of_type(self):
+        self.assertSelects('#inner > h1:first-of-type', ['header1'])
+
+    def test_id_child_selector_first_child(self):
+        self.assertSelects('#inner > h1:first-child', ['header1'])
+
+    def test_id_child_selector_nth_child(self):
+        self.assertSelects('#inner > p:nth-child(3)', ['p1'])
 
     def test_select_on_element(self):
         # Other tests operate on the tree; this operates on an element

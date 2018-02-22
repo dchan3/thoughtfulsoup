@@ -8,26 +8,12 @@ import shlex
 import sys
 import warnings
 from bs4.dammit import EntitySubstitution
+from bs4.operators import OPERATORS
+from bs4.combinator_tokens import COMBINATOR_TOKENS
+from bs4.checker_map import CHECKER_MAP
+from bs4.counter import Counter, PSEUDO_TYPE_CHECKER
 
-OPERATORS = {
-    "=": lambda el, attribute, value: el._attr_value_as_string(attribute) == value, # string representation of `attribute` is equal to `value`
-    "~": lambda el, attribute, value: value in el.get(attribute, []) if isinstance(el.get(attribute, []), list) else value in el.get(attribute, []).split(), # space-separated list representation of `attribute` contains `value`
-    "^": lambda el, attribute, value: el._attr_value_as_string(attribute, '').startswith(value), # string representation of `attribute` starts with `value`
-    "$": lambda el, attribute, value: el._attr_value_as_string(attribute, '').endswith(value), # string representation of `attribute` ends with `value`
-    "*": lambda el, attribute, value: value in el._attr_value_as_string(attribute, ''), # string representation of `attribute` contains `value`
-    "|": lambda el, attribute, value: el._attr_value_as_string(attribute, '') == value or el._attr_value_as_string(attribute, '').startswith(value + '-'),     # string representation of `attribute` is either exactly `value` or starts with `value` and then a dash.
-    "def": lambda el, attribute, value: el.has_attr(attribute)
-}
-
-TOKENS = {
-    ">": lambda tag: tag.children, # Run the next token as a CSS selector against the direct children of each tag in the current context.
-    '~': lambda tag: tag.next_siblings,  # Run the next token as a CSS selector against the siblings of each tag in the current context.
-    '+': lambda tag: (yield tag.find_next_sibling(True)), # For each tag in the current context, run the next token as a CSS selector against the tag's next sibling that's a tag.
-}
-
-_selector_combinators = '>+~'
-
-SUPPORTED = ['nth-of-type', 'nth-last-of-type', 'last-of-type', 'first-of-type']
+SUPPORTED = ['nth-child', 'nth-of-type', 'nth-last-of-type', 'last-of-type', 'last-child', 'first-of-type', 'first-child']
 
 DEFAULT_OUTPUT_ENCODING = "utf-8"
 PY3K = (sys.version_info[0] > 2)
@@ -619,7 +605,7 @@ class PageElement(object):
 
     # Methods for supporting CSS selectors.
 
-    tag_name_re = re.compile('^[a-zA-Z0-9][-.a-zA-Z0-9:_]*$')
+    tag_name_re = re.compile('^[\w\d][-.:_\w\d]*$')
 
     # /^([a-zA-Z0-9][-.a-zA-Z0-9:_]*)\[(\w+)([=~\|\^\$\*]?)=?"?([^\]"]*)"?\]$/
     #   \---------------------------/  \---/\-------------/    \-------/
@@ -629,7 +615,7 @@ class PageElement(object):
     #     |                           Attribute
     #    Tag
     attribselect_re = re.compile(
-        r'^(?P<tag>[a-zA-Z0-9][-.a-zA-Z0-9:_]*)?\[(?P<attribute>[\w-]+)(?P<operator>[=~\|\^\$\*]?)' +
+        r'^(?P<tag>[\w\d][-.:_\w\d]*)?\[(?P<attribute>[\w-]+)(?P<operator>[=~\|\^\$\*]?)' +
         r'=?"?(?P<value>[^\]"]*)"?\]$'
         )
 
@@ -654,8 +640,11 @@ class PageElement(object):
 
     def _attribute_checker(self, operator, attribute, value=''):
         global OPERATORS
-        f = OPERATORS[operator if len(operator) > 0 and operator in "=~^$*|" else "def"]
-        return lambda e: f(e, attribute, value)
+        try:
+            if OPERATORS[operator]:
+                return lambda e: OPERATORS[operator](e, attribute, value)
+        except:
+            return lambda e: OPERATORS["def"](e, attribute, value)
 
     # Old non-property versions of the generators, for backwards
     # compatibility with BS3.
@@ -1327,6 +1316,8 @@ class Tag(PageElement):
 
     def select(self, selector, _candidate_generator=None, limit=None):
         """Perform a CSS selection operation on the current element."""
+        global COMBINATOR_TOKENS
+        global CHECKER_MAP
 
         # Handle grouping selectors if ',' exists, ie: p,a
         if ',' in selector:
@@ -1346,9 +1337,14 @@ class Tag(PageElement):
         tokens = shlex.split(selector)
         current_context = [self]
 
-        if tokens[-1] in _selector_combinators:
-            raise ValueError(
-                'Final combinator "%s" is missing an argument.' % tokens[-1])
+        try:
+            if COMBINATOR_TOKENS[tokens[-1]]:
+                raise ValueError(
+                    'Final combinator "%s" is missing an argument.' % tokens[-1])
+        except KeyError:
+            pass
+        except AttributeError:
+            pass
 
         if self._select_debug:
             print 'Running CSS selector "%s"' % selector
@@ -1357,11 +1353,14 @@ class Tag(PageElement):
             new_context = []
             new_context_ids = set([])
 
-            if tokens[index-1] in _selector_combinators:
-                # This token was consumed by the previous combinator. Skip it.
-                if self._select_debug:
-                    print '  Token was consumed by the previous combinator.'
-                continue
+            try:
+                if COMBINATOR_TOKENS[tokens[index-1]]:
+                    # This token was consumed by the previous combinator. Skip it.
+                    if self._select_debug:
+                        print '  Token was consumed by the previous combinator.'
+                    continue
+            except:
+                pass
 
             if self._select_debug:
                 print ' Considering token "%s"' % token
@@ -1373,89 +1372,77 @@ class Tag(PageElement):
             # selector. Candidates are generated by the active
             # iterator.
             checker = None
+            filt = None
 
             m = self.attribselect_re.match(token)
             if m is not None:
                 # Attribute selector
                 tag_name, attribute, operator, value = m.groups()
                 checker = self._attribute_checker(operator, attribute, value)
-
-            elif '#' in token:
-                # ID selector
-                tag_name, tag_id = token.split('#', 1)
-                def id_matches(tag):
-                    return tag.get('id', None) == tag_id
-                checker = id_matches
-
-            elif '.' in token:
-                # Class selector
-                tag_name, klass = token.split('.', 1)
-                classes = set(klass.split('.'))
-                def classes_match(candidate):
-                    return classes.issubset(candidate.get('class', []))
-                checker = classes_match
-
-            elif ':' in token and not self.quoted_colon.search(token):
-                # Pseudo-class
-                tag_name, pseudo = token.split(':', 1)
-                if tag_name == '':
-                    raise ValueError(
-                        "A pseudo-class must be prefixed with a tag name.")
-                pseudo_attributes = re.match('([a-zA-Z\d-]+)\(([a-zA-Z\d]+)\)', pseudo)
-                found = []
-                if pseudo_attributes is None:
-                    pseudo_type = pseudo
-                    pseudo_value = None
-                else:
-                    pseudo_type, pseudo_value = pseudo_attributes.groups() or None
-                if pseudo_type in SUPPORTED:
-                    if pseudo_type not in ['last-of-type', 'first-of-type']:
-                        try:
-                            if pseudo_value is not None:
-                                pseudo_value = int(pseudo_value)
-                        except:
-                            raise NotImplementedError(
-                                'Only numeric values are currently supported for the nth-of-type pseudo-class.')
-                        if pseudo_value < 1:
-                            raise ValueError(
-                                'nth-of-type pseudo-class value must be at least 1.')
-                    else:
-                        if pseudo_value is not None:
-                            raise ValueError(
-                                'Numeric values are not supported for the last-of-type or first-of-type pseudo-classes.')
-                        pseudo_value = 1
-
-                    class Counter(object):
-                        def __init__(self, destination, from_last):
-                            self.from_last = from_last
-                            self.destination = destination if destination is not None else 1
-
-                        def nth_child_of_type(self, tag, tags):
-                            return len(tags) >= self.destination and tag == tags[-1 * self.destination if self.from_last else self.destination - 1]
-
-                    pseudo_type_checker = {
-                        'nth-of-type': Counter(pseudo_value, False).nth_child_of_type,
-                        'first-of-type': Counter(1, False).nth_child_of_type,
-                        'nth-last-of-type': Counter(pseudo_value, True).nth_child_of_type,
-                        'last-of-type': Counter(1, True).nth_child_of_type
-                    }
-
-                    checker = pseudo_type_checker[pseudo_type]
-                else:
-                    raise NotImplementedError(
-                        'Only the following pseudo-classes are implemented: nth-of-type.')
-
-            elif token == '*':
-                # Star selector -- matches everything
-                pass
-            elif token in _selector_combinators:
-                recursive_candidate_generator = TOKENS[token]
-            elif self.tag_name_re.match(token):
-                # Just a tag name.
-                tag_name = token
             else:
-                raise ValueError(
-                    'Unsupported or invalid CSS selector: "%s"' % token)
+                in_or_not = ((key in token) for key in CHECKER_MAP.keys())
+                c = -1
+                i = 0
+                for b in in_or_not:
+                    if b:
+                        c = i
+                        break;
+                    else:
+                        i += 1
+
+                if c > -1:
+                    tag_name = token.split(CHECKER_MAP.keys()[c], 1)[0]
+                    checker = lambda t: CHECKER_MAP[CHECKER_MAP.keys()[c]](t, token)
+                elif token == '*':
+                    # Star selector -- matches everything
+                    pass
+                elif ':' in token and not self.quoted_colon.search(token):
+                    # Pseudo-class
+                    tag_name, pseudo = token.split(':', 1)
+                    if tag_name == '':
+                        raise ValueError(
+                            "A pseudo-class must be prefixed with a tag name.")
+                    pseudo_attributes = re.match('([\w\d-]+)\(([\w\d]+)\)', pseudo)
+                    found = []
+                    if pseudo_attributes is None:
+                        pseudo_type = pseudo
+                        pseudo_value = None
+                    else:
+                        pseudo_type, pseudo_value = pseudo_attributes.groups() or None
+                    if pseudo_type in SUPPORTED:
+                        if pseudo_type not in ['last-of-type', 'last-child', 'first-of-type', 'first-child',]:
+                            try:
+                                if pseudo_value is not None:
+                                    pseudo_value = int(pseudo_value)
+                            except:
+                                raise NotImplementedError(
+                                    'Only numeric values are currently supported for the nth-of-type pseudo-class.')
+                            if pseudo_value < 1:
+                                raise ValueError(
+                                    'nth-of-type pseudo-class value must be at least 1.')
+                        else:
+                            if pseudo_value is not None:
+                                raise ValueError(
+                                    'Numeric values are not supported for the last-of-type or first-of-type pseudo-classes.')
+                            pseudo_value = 1
+
+                        pseudo_node = PSEUDO_TYPE_CHECKER(pseudo_value if pseudo_value is not None else 1)[pseudo_type]
+                        checker, filt = pseudo_node["f"], pseudo_node["l"]
+                    else:
+                        raise NotImplementedError(
+                            'Only the following pseudo-classes are implemented: nth-of-type.')
+                else:
+                    try:
+                        if COMBINATOR_TOKENS[token]:
+                            recursive_candidate_generator = COMBINATOR_TOKENS[token]
+                    except:
+                        if self.tag_name_re.match(token):
+                            # Just a tag name.
+                            tag_name = token
+                        else:
+                            raise ValueError('Unsupported or invalid CSS selector: "%s"' % token)
+
+
             if recursive_candidate_generator:
                 # This happens when the selector looks like  "> foo".
                 #
@@ -1511,14 +1498,16 @@ class Tag(PageElement):
                     print "    Running candidate generator on %s %s" % (
                         tag.name, repr(tag.attrs))
 
-                def match_gen(t):
+                def match_gen(t, f):
                     r = []
                     for tg in t:
-                        if isinstance(tg, Tag) and tag_name and tg.name == tag_name:
+                        if not f:
+                            r.append(tg)
+                        elif f and isinstance(tg, Tag) and tag_name and tg.name == tag_name:
                             r.append(tg)
                     return r
 
-                matches = match_gen(_use_candidate_generator(tag))
+                matches = match_gen(_use_candidate_generator(tag), filt)
 
                 for candidate in _use_candidate_generator(tag):
 
@@ -1529,7 +1518,7 @@ class Tag(PageElement):
 
                     if checker is not None:
                         try:
-                            if checker.__name__ == "nth_child_of_type":
+                            if filt is not None:
                                 result = checker(candidate, matches)
                             else:
                                 result = checker(candidate)
