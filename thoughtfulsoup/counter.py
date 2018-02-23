@@ -5,8 +5,8 @@ class Counter(object):
         self.from_last = from_last
         self.destination = destination if destination is not None else 1
 
-    def nth_child_of_type(self, tag, tags, fil):
-        tha_list = list(node for node in list(tags) if node != u'\n')
+    def nth_child_of_type(self, tag, tags, tags_f, fil):
+        tha_list = list(node for node in list(tags_f if fil else tags) if node != u'\n')
         if not isinstance(self.destination, AnPlusB):
             if fil:
                 return len(tha_list) >= self.destination and tag == tha_list[-1 * self.destination if self.from_last else self.destination - 1]
