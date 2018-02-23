@@ -10,8 +10,8 @@ import warnings
 from thoughtfulsoup.dammit import EntitySubstitution
 from thoughtfulsoup.operators import OPERATORS
 from thoughtfulsoup.combinator_tokens import COMBINATOR_TOKENS
-from thoughtfulsoup.checker_map import CHECKER_MAP
-from thoughtfulsoup.counter import Counter, PSEUDO_TYPE_CHECKER
+from thoughtfulsoup.checker_map import PSEUDO_TYPE_CHECKER, ID_CLASS_CHECKER
+from thoughtfulsoup.counter import Counter
 from thoughtfulsoup.a_n_plus_b import AnPlusB
 
 SUPPORTED = ['nth-child', 'nth-of-type', 'nth-last-of-type', 'last-of-type', 'last-child', 'first-of-type', 'first-child']
@@ -1318,7 +1318,7 @@ class Tag(PageElement):
     def select(self, selector, _candidate_generator=None, limit=None):
         """Perform a CSS selection operation on the current element."""
         global COMBINATOR_TOKENS
-        global CHECKER_MAP
+        global ID_CLASS_CHECKER
 
         # Handle grouping selectors if ',' exists, ie: p,a
         if ',' in selector:
@@ -1381,19 +1381,11 @@ class Tag(PageElement):
                 tag_name, attribute, operator, value = m.groups()
                 checker = self._attribute_checker(operator, attribute, value)
             else:
-                in_or_not = ((key in token) for key in CHECKER_MAP.keys())
-                c = -1
-                i = 0
-                for b in in_or_not:
-                    if b:
-                        c = i
-                        break;
-                    else:
-                        i += 1
-
-                if c > -1:
-                    tag_name = token.split(CHECKER_MAP.keys()[c], 1)[0]
-                    checker = lambda t: CHECKER_MAP[CHECKER_MAP.keys()[c]](t, token)
+                booty = re.search('[#.]', token)
+                if booty is not None:
+                    char = booty.group()
+                    tag_name = token.split(char, 1)[0]
+                    checker = lambda t: ID_CLASS_CHECKER[char](t, token)
                 elif token == '*':
                     # Star selector -- matches everything
                     pass
