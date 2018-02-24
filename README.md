@@ -3,13 +3,16 @@
 
 ## Extensions Implemented
 ### Pseudo-selectors
+- `:first-child`
+- `:first-of-type`
+- `:is`
+- `:last-child`
+- `:last-of-type`
+- `:not`
+- `:nth-child`
 - `:nth-last-of-type`
 - `:nth-of-type`
-- `:nth-of-child`
-- `:last-of-type`
-- `:last-child`
-- `:first-of-type`
-- `:first-child`
+- `an+b` functional notation for `nth` pseudo-selectors
 
 ### Runtime Optimizations
 - Use dictionary objects rather than long equality `if-elif` statements

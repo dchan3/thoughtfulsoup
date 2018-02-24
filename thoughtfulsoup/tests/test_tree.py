@@ -2003,6 +2003,9 @@ class TestSoupSelector(TreeTest):
     def test_id_child_selector_not(self):
         self.assertSelects('#inner > h2:not(h2:last-of-type)', ['header2'])
 
+    def test_id_child_selector_is(self):
+        self.assertSelects('#inner > h2:is(h2:last-of-type)', ['header3'])
+
     def test_select_on_element(self):
         # Other tests operate on the tree; this operates on an element
         # within the tree.
