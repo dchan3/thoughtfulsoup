@@ -15,6 +15,5 @@ class Counter(object):
         else:
             if fil:
                 return (tha_list.index(tag) + 1 in self.destination.seq(len(tha_list))) or (tha_list[::-1].find(tag) in self.destination.seq(len(tha_list)))
-                tha_list[::-1]
             else:
                 return tha_list.index(tag) + 1 in self.destination.seq(len(tha_list))

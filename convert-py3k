@@ -6,11 +6,11 @@
 # See README.txt to see how to run the test suite after conversion.
 echo "About to destroy and rebuild the py3k/thoughtfulsoup directory."
 echo "If you've got stuff in there, Ctrl-C out of this script or answer 'n'."
-mkdir -p py3k
+mkdir -p py3k/thoughtfulsoup
 rm -rfI py3k/thoughtfulsoup
-cp -r thoughtfulsoup/ py3k/
-2to3 -w py3k
+cp -r thoughtfulsoup/ py3k/thoughtfulsoup
+2to3 -w py3k/thoughtfulsoup
 echo ""
 echo "OK, conversion is done."
 echo "Now running the unit tests."
-(cd py3k && python3 -m unittest discover -s thoughtfulsoup)
+(cd py3k/thoughtfulsoup && python3 -m unittest discover -s .)
